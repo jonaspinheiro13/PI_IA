@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Análise Simples</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { margin:0; font-family: Arial, Helvetica, sans-serif; background:#f3f3f3; color:#222; }
+    .topo { background:#111; color:#fff; padding:10px 14px; font-weight:bold; letter-spacing:.5px; }
+
+    .area { display:grid; grid-template-columns:220px 1fr; gap:14px; padding:14px; }
+    .lado { background:#fff; border:1px solid #999; padding:10px; }
+    .marca { font-size:12px; font-weight:bold; margin-bottom:8px; color:#444; }
+
+    .grupo { margin-bottom:12px; border-top:1px solid #cfcfcf; padding-top:8px; }
+    .titulo-grupo { font-size:12px; color:#444; margin-bottom:6px; }
+    .btn-menu { display:block; width:100%; text-align:left; background:#e5e5e5; border:1px solid #999; padding:6px 8px; font-size:13px; cursor:pointer; margin-bottom:6px; }
+    .btn-menu.ativo { background:#ddd; border-color:#666; font-weight:bold; }
+    .campo { width:100%; margin-top:6px; border:1px solid #999; background:#e5e5e5; padding:6px 8px; font-size:13px; }
+
+    .miolo { background:#fff; border:1px solid #999; padding:12px; }
+
+    .filtro { display:flex; gap:10px; align-items:center; margin-bottom:12px; flex-wrap:wrap; }
+    .btn { border:1px solid #999; background:#e5e5e5; padding:6px 8px; font-size:13px; cursor:pointer; }
+    select, input[type="text"] { border:1px solid #999; background:#e5e5e5; padding:6px 8px; font-size:13px; }
+
+    .linhazinha { height:1px; background:#cfcfcf; margin:12px 0; }
+
+    .grade { display:grid; gap:12px; }
+    .duas { grid-template-columns:1fr 1fr; }
+
+    .caixa { border:1px solid #999; background:#fff; }
+    .cab { background:#111; color:#fff; font-size:12px; padding:6px 8px; letter-spacing:.3px; display:flex; justify-content:space-between; align-items:center; }
+    .dica { font-size:11px; color:#bbb; }
+
+    /* AUMENTEI as alturas dos blocos p/ gráficos ficarem grandes */
+    .miolo-caixa { height:260px; display:grid; place-items:center; background:#f3f3f3; color:#555; font-size:13px; position:relative; padding:6px; }
+    .miolo-caixa.grande { height:380px; }
+    .msg-centro { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#777; text-align:center; padding:10px; }
+
+    .aviso-bloco { border:1px dashed #bbb; background:#fafafa; padding:14px; font-size:13px; color:#555; }
+    .muted { color:#888; font-size:11px; }
+
+    @media (max-width: 900px) {
+      .area { grid-template-columns:1fr; }
+      .duas { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topo" id="titulo-topo">ANÁLISE GERAL</div>
+
+  <div class="area">
+    <!-- ESQUERDA -->
+    <aside class="lado">
+      <div class="marca">BORTOS ANALYTICS</div>
+
+      <div class="grupo">
+        <div class="titulo-grupo">TIPOS DE SERVIÇOS</div>
+        <button class="btn-menu ativo" data-alvo="tela-geral">Análise Geral</button>
+        <button class="btn-menu" data-alvo="tela-gastos">Análise dos Gastos</button>
+      </div>
+
+      <div class="grupo">
+        <div class="titulo-grupo">ANOTAÇÕES</div>
+        <input class="campo" type="text" placeholder="..." />
+        <input class="campo" type="text" placeholder="..." />
+      </div>
+    </aside>
+
+    <!-- DIREITA -->
+    <main class="miolo">
+      <!-- filtros -->
+      <div class="filtro">
+        <label for="mes">Selecionar mês</label>
+        <select id="mes">
+          <option>Janeiro</option><option>Fevereiro</option><option>Março</option>
+          <option>Abril</option><option>Maio</option><option>Junho</option>
+          <option>Julho</option><option>Agosto</option><option>Setembro</option>
+          <option>Outubro</option><option>Novembro</option><option>Dezembro</option>
+        </select>
+        <select id="ano"></select>
+        <button class="btn" id="aplicar">Aplicar</button>
+        <span id="msg-filtro" style="font-size:12px;color:#666"></span>
+      </div>
+
+      <!-- TELA 1: ANÁLISE GERAL -->
+      <section id="tela-geral" class="tela">
+        <div class="grade duas">
+          <div class="caixa">
+            <div class="cab"><span>ANÁLISE DO MÊS</span><span class="dica" id="dica1"></span></div>
+            <div class="miolo-caixa">
+              <div class="msg-centro" id="msg1">Selecione mês/ano e clique em Aplicar</div>
+              <canvas id="graficoMes"></canvas>
+            </div>
+          </div>
+
+          <div class="caixa">
+            <div class="cab"><span>ANÁLISE MEIOS DE PAGAMENTO</span><span class="dica" id="dica2"></span></div>
+            <div class="miolo-caixa">
+              <!-- aviso fácil de remover -->
+              <div class="aviso-bloco">
+                <b>Sem análise de meios de pagamento ainda.</b><br/>
+                Quando tiver a API/dados (Pix, cartão, dinheiro etc.), substitua este bloco por um &lt;canvas id="graficoPagamento"&gt;&lt;/canvas&gt;.
+                <div class="muted">Sugestão: pizza/donut por forma de pagamento.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="linhazinha"></div>
+
+        <div class="caixa">
+          <div class="cab"><span>QUANTIDADE VENDIDA POR PRODUTO (Top 15)</span><span class="dica" id="dica3"></span></div>
+          <div class="miolo-caixa grande">
+            <div class="msg-centro" id="msg3">Selecione mês/ano e clique em Aplicar</div>
+            <canvas id="graficoProdutos"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- TELA 2: ANÁLISE DE GASTOS -->
+      <section id="tela-gastos" class="tela" style="display:none">
+        <div class="grade duas">
+          <div class="caixa">
+            <div class="cab">DESPESAS DO MÊS <span class="dica" id="dicaG1"></span></div>
+            <div class="miolo-caixa"><canvas id="graficoDesp"></canvas></div>
+          </div>
+          <div class="caixa">
+            <div class="cab">LUCROS DO MÊS <span class="dica" id="dicaG2"></span></div>
+            <div class="miolo-caixa"><canvas id="graficoLucro"></canvas></div>
+          </div>
+        </div>
+        <div class="linhazinha"></div>
+        <div class="caixa">
+          <div class="cab">RELAÇÃO ENTRE LUCROS E DESPESAS <span class="dica" id="dicaG3"></span></div>
+          <div class="miolo-caixa grande"><canvas id="graficoRelacao"></canvas></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    /* ==========================
+       CONFIG FINANCEIRA (edite quando tiver valores reais)
+       ========================== */
+    var TABELA_PRECOS = {
+      // "Hot Dog Seladinho": {preco: 15.90, custo: 7.20},
+      // "X-Salada": {preco: 22.90, custo: 12.00},
+      // "Refrigerante Lata": {preco: 7.00, custo: 3.50},
+    };
+    var PRECO_PADRAO = 20; // R$
+    var CUSTO_PADRAO  = 12; // R$
+
+    /* ===== trocador de telas ===== */
+    var botoes = document.querySelectorAll('.btn-menu');
+    var telas = document.querySelectorAll('.tela');
+    var topo = document.getElementById('titulo-topo');
+    function trocarTela(idAlvo, textoTopo){
+      for (var i=0; i<telas.length; i++) telas[i].style.display = (telas[i].id === idAlvo) ? 'block' : 'none';
+      topo.textContent = (textoTopo || '').toUpperCase();
+    }
+    for (var i=0; i<botoes.length; i++){
+      (function(btn){
+        btn.addEventListener('click', function(){
+          for (var j=0; j<botoes.length; j++) botoes[j].classList.remove('ativo');
+          btn.classList.add('ativo');
+          trocarTela(btn.getAttribute('data-alvo'), btn.textContent);
+        });
+      })(botoes[i]);
+    }
+
+    /* ===== meses/anos ===== */
+    var NOME_PARA_NUM = {
+      "Janeiro":"01","Fevereiro":"02","Março":"03","Abril":"04","Maio":"05","Junho":"06",
+      "Julho":"07","Agosto":"08","Setembro":"09","Outubro":"10","Novembro":"11","Dezembro":"12"
+    };
+    (function montaAnos(){
+      var selAno = document.getElementById('ano');
+      var agora = new Date();
+      var y = agora.getFullYear();
+      var anos = [y-2, y-1, y, y+1];
+      var html = '';
+      for (var k=0; k<anos.length; k++){
+        var a = anos[k];
+        html += '<option '+(a===y?'selected':'')+'>'+a+'</option>';
+      }
+      selAno.innerHTML = html;
+      var nomes = Object.keys(NOME_PARA_NUM);
+      document.getElementById('mes').value = nomes[agora.getMonth()];
+    })();
+
+    /* ===== util numérico p/ eixo Y mais “esperto” ===== */
+    function niceStep(maxVal){
+      var base = Math.max(1, Math.ceil(maxVal / 6)); // 6 ~ 8 passos
+      // arredonda p/ múltiplos “bonitos” (5, 10, 25, 50…)
+      var ranks = [1,2,5,10,25,50,100,250,500,1000];
+      for (var i=0;i<ranks.length;i++){
+        if (base <= ranks[i]) return ranks[i];
+      }
+      return Math.pow(10, String(Math.floor(Math.log10(base))));
+    }
+    function yAxisConfig(maxVal, titulo){
+      var step = niceStep(maxVal);
+      var sug = Math.ceil((maxVal*1.05)/step)*step;
+      return {
+        beginAtZero: true,
+        suggestedMax: sug,
+        ticks: {
+          stepSize: step,
+          precision: 0,
+          callback: function(v){ return Math.round(v); }
+        },
+        title: { display:true, text: titulo || 'Unidades (previstas)' },
+        grid: { drawBorder:false }
+      };
+    }
+    function fmtInt(x){ return (Math.round(Number(x)||0)).toString(); }
+
+    /* ===== plugin simples: mostra o valor em cima da barra ===== */
+    const mostraValor = {
+      id: 'mostraValor',
+      afterDatasetsDraw(chart, args, pluginOptions) {
+        const {ctx} = chart;
+        chart.data.datasets.forEach(function(dataset, i){
+          const meta = chart.getDatasetMeta(i);
+          meta.data.forEach(function(bar, idx){
+            const v = dataset.data[idx];
+            if (v == null) return;
+            ctx.save();
+            ctx.font = '12px Arial';
+            ctx.fillStyle = '#444';
+            ctx.textAlign = 'center';
+            ctx.fillText(fmtInt(v), bar.x, bar.y - 6);
+            ctx.restore();
+          });
+        });
+      }
+    };
+
+    /* ===== helpers de gráfico ===== */
+    var chMes=null, chProd=null, chDesp=null, chLuc=null, chRel=null;
+
+    function fazLinha(idCanvas, labels, dados){
+      if (idCanvas==='graficoMes' && chMes) chMes.destroy();
+      var ctx = document.getElementById(idCanvas).getContext('2d');
+      var maxv = Math.max.apply(null, dados.concat([0]));
+      chMes = new Chart(ctx, {
+        type: 'line',
+        data: { labels: labels, datasets: [{ label: 'Qtd prevista (dia)', data: dados, tension:0.2, pointRadius:2, fill:false }] },
+        options: {
+          responsive:true,
+          maintainAspectRatio:false,
+          scales:{ y: yAxisConfig(maxv, 'Unidades por dia') },
+          plugins:{
+            legend:{ display:false },
+            tooltip:{ callbacks:{ label:(ctx)=> ' ' + fmtInt(ctx.parsed.y) } }
+          }
+        }
+      });
+    }
+
+    function fazBarras(idCanvas, labels, dados, nome, qual){
+      var ctx = document.getElementById(idCanvas).getContext('2d');
+      if (qual==='prod' && chProd) chProd.destroy();
+      if (qual==='desp' && chDesp) chDesp.destroy();
+      if (qual==='luc'  && chLuc)  chLuc.destroy();
+      if (qual==='rel'  && chRel)  chRel.destroy();
+
+      var maxv = Math.max.apply(null, dados.concat([0]));
+      var ref = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: labels, datasets: [{ label: (nome||'Qtd prevista'), data: dados }] },
+        options: {
+          responsive:true,
+          maintainAspectRatio:false,
+          scales:{ y: yAxisConfig(maxv, (qual==='desp'||qual==='luc'||qual==='rel')?'R$ (estimado)':'Unidades (mês)') },
+          plugins:{
+            legend:{ display:false },
+            tooltip:{ callbacks:{ label:(c)=> ' ' + fmtInt(c.parsed.y) } }
+          }
+        },
+        plugins:[mostraValor]
+      });
+
+      if (qual==='prod') chProd = ref;
+      if (qual==='desp') chDesp = ref;
+      if (qual==='luc')  chLuc  = ref;
+      if (qual==='rel')  chRel  = ref;
+    }
+
+    /* ===== API ===== */
+    var API = "/prever"; // se rodar separado: "http://127.0.0.1:8000/prever"
+    function datasDoMes(nomeMes, ano){
+      var m = NOME_PARA_NUM[nomeMes];
+      var y = String(ano);
+      var ultimo = new Date(parseInt(y,10), parseInt(m,10), 0).getDate();
+      function dois(n){ return String(n).padStart(2,'0'); }
+      return { ini: y + '-' + m + '-01', fim: y + '-' + m + '-' + dois(ultimo) };
+    }
+    function pegaJSON(url){
+      return fetch(url).then(function(r){
+        if (!r.ok) return r.text().then(function(t){ throw new Error('API '+r.status+': '+t); });
+        return r.json();
+      });
+    }
+
+    /* ===== carregar tudo ===== */
+    function carregar(){
+      var nomeMes = document.getElementById('mes').value;
+      var ano = document.getElementById('ano').value;
+      var msgFiltro = document.getElementById('msg-filtro');
+      var pacote = datasDoMes(nomeMes, ano);
+      var ini = pacote.ini, fim = pacote.fim;
+
+      // mensagens
+      document.getElementById('msg1').textContent = 'Carregando…';
+      document.getElementById('msg3').textContent = 'Carregando…';
+
+      // 1) diário → soma por dia (linha)
+      pegaJSON(API + '?inicio='+ini+'&fim='+fim+'&modo=diario')
+        .then(function(diario){
+          var somaDia = {};
+          for (var i=0;i<diario.length;i++){
+            var item = diario[i];
+            var d = item.data || item["data"];
+            var v = Number(item.quantidade_prevista != null ? item.quantidade_prevista : item["quantidade_prevista"]) || 0;
+            somaDia[d] = (somaDia[d] || 0) + v;
+          }
+          var dias = Object.keys(somaDia).sort();
+          var serie = dias.map(function(dd){ return somaDia[dd]; });
+          fazLinha('graficoMes', dias, serie);
+          document.getElementById('msg1').textContent = '';
+          document.getElementById('dica1').textContent = ini + ' a ' + fim;
+        })
+        .catch(function(e){
+          console.error(e);
+          document.getElementById('msg1').textContent = 'Erro ao carregar (veja o console)';
+          alert(e.message);
+        });
+
+      // 2) agregado → barras por produto (Top 15)
+      pegaJSON(API + '?inicio='+ini+'&fim='+fim+'&modo=agregado')
+        .then(function(agreg){
+          // ordena do maior p/ menor
+          agreg.sort(function(a,b){ return (Number(b.quantidade_prevista)||0)-(Number(a.quantidade_prevista)||0); });
+
+          // TOP 15 pra ficar legível (ainda dá pra rolar a página se tiver mais)
+          var top = agreg.slice(0,15);
+          var labelsProd = top.map(function(x){ return x.produto; });
+          var dadosQtd   = top.map(function(x){ return Number(x.quantidade_prevista)||0; });
+
+          fazBarras('graficoProdutos', labelsProd, dadosQtd, 'Qtd prevista (mês) — Top 15', 'prod');
+          document.getElementById('msg3').textContent = '';
+          document.getElementById('dica3').textContent = ini + ' a ' + fim;
+
+          /* ====== ANÁLISE DE GASTOS (usa preços/custos estimados) ====== */
+          var despesasPorProd = [];
+          var lucrosPorProd   = [];
+          var totalDesp = 0, totalLuc = 0;
+
+          for (var k=0; k<agreg.length; k++){
+            var p = agreg[k].produto;
+            var qtd = Number(agreg[k].quantidade_prevista) || 0;
+            var info = TABELA_PRECOS[p] || {preco: PRECO_PADRAO, custo: CUSTO_PADRAO};
+            var receita = info.preco * qtd;
+            var despesa = info.custo * qtd;
+            var lucro   = receita - despesa;
+            despesasPorProd.push({p:p, v:despesa});
+            lucrosPorProd.push({p:p, v:lucro});
+            totalDesp += despesa;
+            totalLuc  += lucro;
+          }
+
+          despesasPorProd.sort(function(a,b){ return b.v - a.v; });
+          lucrosPorProd.sort(function(a,b){ return b.v - a.v; });
+
+          // Mostra também Top 15 em gastos/lucro pra não poluir
+          var dTop = despesasPorProd.slice(0,15);
+          var lTop = lucrosPorProd.slice(0,15);
+
+          fazBarras('graficoDesp',
+            dTop.map(function(x){ return x.p; }),
+            dTop.map(function(x){ return Math.round(x.v) }),
+            'Despesas (R$) — mês', 'desp');
+
+          fazBarras('graficoLucro',
+            lTop.map(function(x){ return x.p; }),
+            lTop.map(function(x){ return Math.round(x.v) }),
+            'Lucro bruto (R$) — mês', 'luc');
+
+          fazBarras('graficoRelacao',
+            ['Despesas', 'Lucro bruto'],
+            [Math.round(totalDesp), Math.round(totalLuc)],
+            'Resumo do mês (R$)', 'rel');
+
+          document.getElementById('dicaG1').textContent = ini + ' a ' + fim;
+          document.getElementById('dicaG2').textContent = ini + ' a ' + fim;
+          document.getElementById('dicaG3').textContent = ini + ' a ' + fim;
+
+          msgFiltro.textContent = 'Filtro aplicado: ' + nomeMes + '/' + ano;
+          setTimeout(function(){ msgFiltro.textContent=''; }, 2500);
+        })
+        .catch(function(e){
+          console.error(e);
+          document.getElementById('msg3').textContent = 'Erro ao carregar (veja o console)';
+          alert(e.message);
+        });
+    }
+
+    // botão aplicar
+    document.getElementById('aplicar').addEventListener('click', carregar);
+
+    // carrega ao abrir
+    carregar();
+  </script>
+</body>
+</html>
