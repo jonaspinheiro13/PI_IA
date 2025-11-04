@@ -16,6 +16,7 @@ python prever_ia.py --modelo .\modelos\modelo_demanda_ifood.joblib `
                     --saida .\saidas\prev_2025-11_agregado.csv
                     
 **Diário (linha por dia e produto)**
+
 python prever_ia.py --modelo .\modelos\modelo_demanda_ifood.joblib `
                     --inicio 2025-11-01 --fim 2025-11-30 `
                     --modo diario `
@@ -31,4 +32,4 @@ http://127.0.0.1:8000/web/
 
 (Roda o codigo no terminal com a venv ativada)
 
-# Roda o codigo no terminal com a venv ativada
+Roda o codigo no terminal com a venv ativada
