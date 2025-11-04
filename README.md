@@ -9,12 +9,13 @@ python treino_ia.py --itens_csv .\dados\Pedidos-Produtos-ifood-072024-082025-CSV
 
 
 # 2-Codigo para rodar o prever_ia.py individual do site
-Agregado (soma do mês por produto)
+**Agregado (soma do mês por produto)**
 python prever_ia.py --modelo .\modelos\modelo_demanda_ifood.joblib `
                     --inicio 2025-11-01 --fim 2025-11-30 `
                     --modo agregado `
                     --saida .\saidas\prev_2025-11_agregado.csv
-# Diário (linha por dia e produto)
+                    
+**Diário (linha por dia e produto)**
 python prever_ia.py --modelo .\modelos\modelo_demanda_ifood.joblib `
                     --inicio 2025-11-01 --fim 2025-11-30 `
                     --modo diario `
@@ -25,7 +26,7 @@ python prever_ia.py --modelo .\modelos\modelo_demanda_ifood.joblib `
 
 # 3-Codigo para subir a API
 python -m uvicorn api_previsao:app --reload --port 8000
-# link para visualizar o site após subir a API
+**link para visualizar o site após subir a API**
 http://127.0.0.1:8000/web/
 
 (Roda o codigo no terminal com a venv ativada)
