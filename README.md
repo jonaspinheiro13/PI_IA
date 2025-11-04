@@ -1,1 +1,1 @@
-A versão do python a ser utilizada foi: Python 3.12.8
+Versão do python a ser utilizada: Python 3.12.8
