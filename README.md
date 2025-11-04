@@ -34,5 +34,3 @@ python -m uvicorn api_previsao:app --reload --port 8000
 http://127.0.0.1:8000/web/
 
 (Roda o codigo no terminal com a venv ativada)
-
-Roda o codigo no terminal com a venv ativada
