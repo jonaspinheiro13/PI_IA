@@ -30,6 +30,7 @@ python prever_ia.py --modelo .\modelos\modelo_demanda_ifood.joblib `
 python -m uvicorn api_previsao:app --reload --port 8000
 
 **link para visualizar o site após subir a API**
+
 http://127.0.0.1:8000/web/
 
 (Roda o codigo no terminal com a venv ativada)
